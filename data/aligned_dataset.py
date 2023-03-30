@@ -1,4 +1,7 @@
 import os
+
+import torch
+
 from data.base_dataset import BaseDataset, get_params, get_transform
 from data.image_folder import make_dataset
 from PIL import Image
@@ -53,7 +56,8 @@ class AlignedDataset(BaseDataset):
         A = A_transform(A)
         B = B_transform(B)
 
-        return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path}
+        # read audio
+        return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path, "audio": torch.Tensor(1, 512, 2, 2)}
 
     def __len__(self):
         """Return the total number of images in the dataset."""
