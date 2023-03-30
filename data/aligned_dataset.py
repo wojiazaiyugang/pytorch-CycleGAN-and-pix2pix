@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 
 import torch
+import numpy as np
 
 from data.base_dataset import BaseDataset, get_params, get_transform
 from data.image_folder import make_dataset
@@ -57,7 +59,9 @@ class AlignedDataset(BaseDataset):
         B = B_transform(B)
 
         # read audio
-        return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path, "audio": torch.Tensor(1, 512, 2, 2)}
+        audio_data = np.load(str(Path(AB_path).with_suffix(".npy")))
+        audio_data = audio_data.reshape(512*8, 2, 2)
+        return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path, "audio": audio_data} # torch.Tensor(1, 512, 2, 2)
 
     def __len__(self):
         """Return the total number of images in the dataset."""

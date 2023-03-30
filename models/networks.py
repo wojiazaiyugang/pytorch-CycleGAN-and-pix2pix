@@ -459,7 +459,7 @@ class UnetGenerator(nn.Module):
         """
         super(UnetGenerator, self).__init__()
         # construct unet structure
-        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8 + 0, input_nc=None, submodule=None,
+        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=None,
                                              norm_layer=norm_layer,
                                              innermost=True, tie=True)  # add the innermost layer
         for i in range(num_downs - 5):  # add intermediate layers with ngf * 8 filters
@@ -544,6 +544,7 @@ class UnetSkipConnectionBlock(nn.Module):
                 model = down + [submodule] + up
 
         self.model = nn.Sequential(*model)
+        self.my_1_1 = nn.Conv2d(1024+512 * 8, 1024, kernel_size=1, stride=1, padding=0)
 
     def my_forward(self, model, x):
         from copy import deepcopy
@@ -562,20 +563,16 @@ class UnetSkipConnectionBlock(nn.Module):
         return input
 
     def forward(self, x):
-        # x, audio = x
-        # if self.tie:
-        #     A = 1
-        # print(image.shape)
-        # model_output = self.model(x)
         model_output = self.my_forward(self.model, x)
         x, audio = x
-        #
         if self.outermost:
             output = model_output
         else:  # add skip connections
             output = torch.cat([x, model_output], 1)
-        # if self.tie:
-        #     output = torch.cat([audio, output], 1)
+        if self.tie:
+            output = torch.cat([audio, output], 1)
+            # 经过1*1卷积
+            output = self.my_1_1(output)
         return output
 
 
